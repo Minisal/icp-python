@@ -8,7 +8,8 @@ from plyfile import *
 
 # Constants
 N = 10                                    # number of random points in the dataset
-num_tests = 100                             # number of test iterations
+num_tests = 1                             # number of test iterations
+num_tests_icp = 1
 dim = 3                                     # number of dimensions of the points
 noise_sigma = .01                           # standard deviation error to be added
 translation = .1                            # max translation of the test set
@@ -37,73 +38,78 @@ def rotation_matrix(axis, theta):
                   [2*(b*d-a*c), 2*(c*d+a*b), a*a+d*d-b*b-c*c]])
 
 
-def test_best_fit():
+def test_best_fit(A,B):
 
     # Generate a random dataset
-    A = np.random.rand(N, dim)
+    # A = np.random.rand(N, dim)
 
     total_time = 0
 
     for i in range(num_tests):
 
-        B = np.copy(A)
+        # B = np.copy(A)
 
         # Translate
-        t = np.random.rand(dim)*translation
-        B += t
+        # t = np.random.rand(dim)*translation
+        # B += t
 
         # Rotate
-        R = rotation_matrix(np.random.rand(dim), np.random.rand()*rotation)
-        B = np.dot(R, B.T).T
+        # R = rotation_matrix(np.random.rand(dim), np.random.rand()*rotation)
+        # B = np.dot(R, B.T).T
 
         # Add noise
-        B += np.random.randn(N, dim) * noise_sigma
+        # B += np.random.randn(N, dim) * noise_sigma
 
         # Find best fit transform
         start = time.time()
         T, R1, t1 = icp.best_fit_transform(B, A)
         total_time += time.time() - start
 
+        
+
         # Make C a homogeneous representation of B
-        C = np.ones((N, 4))
-        C[:,0:3] = B
+        # C = np.ones((N, 4))
+        # C[:,0:3] = B
 
         # Transform C
-        C = np.dot(T, C.T).T
+        # C = np.dot(T, C.T).T
 
-        assert np.allclose(C[:,0:3], A, atol=6*noise_sigma) # T should transform B (or C) to A
-        assert np.allclose(-t1, t, atol=6*noise_sigma)      # t and t1 should be inverses
-        assert np.allclose(R1.T, R, atol=6*noise_sigma)     # R and R1 should be inverses
+        # assert np.allclose(C[:,0:3], A, atol=6*noise_sigma) # T should transform B (or C) to A
+        # assert np.allclose(-t1, t, atol=6*noise_sigma)      # t and t1 should be inverses
+        # assert np.allclose(R1.T, R, atol=6*noise_sigma)     # R and R1 should be inverses
 
-    print('best fit time: {:.3}'.format(total_time/num_tests))
+    print("tansform:\n",T)
+    print("\nroatation:\n",R1)
+    print("\ntransformation:\n",t1)
+    print('\nbest fit time: {:.3}'.format(total_time/num_tests))
 
     return
 
 
-def test_icp():
+def test_icp(A, B):
 
     # Generate a random dataset
-    A = np.random.rand(N, dim)
+    # A = np.random.rand(N, dim)
 
     total_time = 0
 
-    for i in range(num_tests):
+    for i in range(num_tests_icp):
 
-        B = np.copy(A)
+        # B = np.copy(A)
 
         # Translate
-        t = np.random.rand(dim)*translation
-        B += t
+        # t = np.random.rand(dim)*translation
+        # B += t
 
         # Rotate
-        R = rotation_matrix(np.random.rand(dim), np.random.rand() * rotation)
-        B = np.dot(R, B.T).T
+        # R = rotation_matrix(np.random.rand(dim), np.random.rand() * rotation)
+        # B = np.dot(R, B.T).T
 
         # Add noise
-        B += np.random.randn(N, dim) * noise_sigma
+        # B += np.random.randn(N, dim) * noise_sigma
 
         # Shuffle to disrupt correspondence
-        np.random.shuffle(B)
+        # np.random.shuffle(B)
 
         # Run ICP
         start = time.time()
@@ -111,32 +117,45 @@ def test_icp():
         total_time += time.time() - start
 
         # Make C a homogeneous representation of B
-        C = np.ones((N, 4))
-        C[:,0:3] = np.copy(B)
+        # C = np.ones((N, 4))
+        # C[:,0:3] = np.copy(B)
 
         # Transform C
-        C = np.dot(T, C.T).T
+        # C = np.dot(T, C.T).T
 
-        assert np.mean(distances) < 6*noise_sigma                   # mean error should be small
-        assert np.allclose(T[0:3,0:3].T, R, atol=6*noise_sigma)     # T and R should be inverses
-        assert np.allclose(-T[0:3,3], t, atol=6*noise_sigma)        # T and t should be inverses
+        # assert np.mean(distances) < 6*noise_sigma                   # mean error should be small
+        # assert np.allclose(T[0:3,0:3].T, R, atol=6*noise_sigma)     # T and R should be inverses
+        # assert np.allclose(-T[0:3,3], t, atol=6*noise_sigma)        # T and t should be inverses
 
-    print('icp time: {:.3}'.format(total_time/num_tests))
+    print("tansform:\n", T)
+    print("\nmean distance:\n", np.mean(distances))
+    print("\niterations:\n", iterations)
+    print('\nicp time: {:.3}'.format(total_time/num_tests))
 
-    return
+    return T
 
 
 if __name__ == "__main__":
     src = read_ply_xyz("bun000.ply")
     dst = read_ply_xyz("bun045.ply")
 
-
     # display point clouds
     fig = plt.figure()
     ax = Axes3D(fig)
 
-    ax.scatter(src[:,0],src[:,1],src[:,2],c="red")
+    ax.scatter(src[:,0],src[:,1],src[:,2],c="black")
     ax.scatter(dst[:,0],dst[:,1],dst[:,2],c="blue")
+
+    print("\n ===== test best fit =====\n")
+    test_best_fit(src, dst)
+    print("\n\n ===== test icp =====\n")
+    T = test_icp(src, dst)
+
+    rst = np.ones((dim+1,src.shape[0])) # make points homogeneous
+    rst[:dim,:] = np.copy(src.T)
+    rst = np.dot(T, rst)
+    rst = rst[:dim,:].T
+    ax.scatter(rst[:,0],rst[:,1],rst[:,2],c="red")
 
     # set top view
     ax.azim=-90
@@ -145,5 +164,4 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # test_best_fit()
-    # test_icp()
+    # TODO show the transformed matrix

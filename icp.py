@@ -14,10 +14,17 @@ def best_fit_transform(A, B):
       t: mx1 translation vector
     '''
 
-    assert A.shape == B.shape
+    # assert A.shape == B.shape
+    # array slicing
+    size_a = A.shape[0]
+    size_b = B.shape[0]
+    if (size_a > size_b):
+        A = A[0:size_b,0:3]
+    else:
+        B = B[0:size_a,0:3]
 
     # get number of dimensions
-    m = A.shape[1]
+    m = A.shape[1] 
 
     # translate points to their centroids
     centroid_A = np.mean(A, axis=0)
@@ -80,7 +87,14 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001):
         i: number of iterations to converge
     '''
 
-    assert A.shape == B.shape
+    # assert A.shape == B.shape
+    # array slicing
+    size_a = A.shape[0]
+    size_b = B.shape[0]
+    if (size_a > size_b):
+        A = A[0:size_b,0:3]
+    else:
+        B = B[0:size_a,0:3]
 
     # get number of dimensions
     m = A.shape[1]
@@ -98,6 +112,7 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001):
     prev_error = 0
 
     for i in range(max_iterations):
+        print("iteration: ", i)
         # find the nearest neighbors between the current source and destination points
         distances, indices = nearest_neighbor(src[:m,:].T, dst[:m,:].T)
 
