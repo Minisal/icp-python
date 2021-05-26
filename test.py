@@ -27,6 +27,16 @@ def read_ply_xyz(filename):
         vertices[:,2] = plydata['vertex'].data['z']
     return vertices 
 
+def write_ply_xyz(path, points, text=True):
+    """
+    path: path to save: '/xx/yy/zz.ply'
+    points: point clouds: size (N,3)
+    """
+    points = [(points[i,0], points[i,1], points[i,2]) for i in range(points.shape[0])]
+    vertex = np.array(points, dtype=[('x','f4'), ('y','f4'),('z','f4')])
+    el = PlyElement.describe(vertex, 'vertex', comments=['vertices'])
+    PlyData([el],text=text).write(path)
+
 
 def rotation_matrix(axis, theta):
     axis = axis/np.sqrt(np.dot(axis, axis))
@@ -157,6 +167,9 @@ if __name__ == "__main__":
     rst = rst[:dim,:].T
     ax.scatter(rst[:,0],rst[:,1],rst[:,2],c="red") # results
 
+    # save ply
+    write_ply_xyz("result.ply", rst)
+
     # set top view
     ax.azim=-90
     ax.dist=10
@@ -164,4 +177,4 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # save ply
+    
