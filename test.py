@@ -1,10 +1,12 @@
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt 
-import time
-import icp
 import os
+import icp
+import time
+import numpy as np
 from plyfile import *
+import matplotlib.pyplot as plt 
+from mpl_toolkits.mplot3d import Axes3D
+
+
 
 # Constants
 N = 10                                    # number of random points in the dataset
