@@ -1,6 +1,10 @@
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt 
 import time
 import icp
+import os
+from plyfile import *
 
 # Constants
 N = 10                                    # number of random points in the dataset
@@ -9,6 +13,18 @@ dim = 3                                     # number of dimensions of the points
 noise_sigma = .01                           # standard deviation error to be added
 translation = .1                            # max translation of the test set
 rotation = .1                               # max rotation (radians) of the test set
+
+
+def read_ply_xyz(filename):
+    assert(os.path.isfile(filename))
+    with open(filename, 'rb') as f:
+        plydata = PlyData.read(f)
+        num_verts = plydata['vertex'].count
+        vertices = np.zeros(shape=[num_verts, 3], dtype=np.float32)
+        vertices[:,0] = plydata['vertex'].data['x']
+        vertices[:,1] = plydata['vertex'].data['y']
+        vertices[:,2] = plydata['vertex'].data['z']
+    return vertices 
 
 
 def rotation_matrix(axis, theta):
@@ -111,5 +127,23 @@ def test_icp():
 
 
 if __name__ == "__main__":
-    test_best_fit()
-    test_icp()
+    src = read_ply_xyz("bun000.ply")
+    dst = read_ply_xyz("bun045.ply")
+
+
+    # display point clouds
+    fig = plt.figure()
+    ax = Axes3D(fig)
+
+    ax.scatter(src[:,0],src[:,1],src[:,2],c="red")
+    ax.scatter(dst[:,0],dst[:,1],dst[:,2],c="blue")
+
+    # set top view
+    ax.azim=-90
+    ax.dist=10
+    ax.elev=90
+
+    plt.show()
+
+    # test_best_fit()
+    # test_icp()
