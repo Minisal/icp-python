@@ -112,7 +112,6 @@ def icp(A, B, init_pose=None, max_iterations=20, tolerance=0.001):
     prev_error = 0
 
     for i in range(max_iterations):
-        print("iteration: ", i)
         # find the nearest neighbors between the current source and destination points
         distances, indices = nearest_neighbor(src[:m,:].T, dst[:m,:].T)
 

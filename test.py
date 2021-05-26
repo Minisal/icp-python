@@ -143,19 +143,19 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = Axes3D(fig)
 
-    ax.scatter(src[:,0],src[:,1],src[:,2],c="black")
-    ax.scatter(dst[:,0],dst[:,1],dst[:,2],c="blue")
+    ax.scatter(src[:,0],src[:,1],src[:,2],c="black") # source
+    ax.scatter(dst[:,0],dst[:,1],dst[:,2],c="blue")   # destination
 
     print("\n ===== test best fit =====\n")
-    test_best_fit(src, dst)
+    test_best_fit(dst, src)
     print("\n\n ===== test icp =====\n")
-    T = test_icp(src, dst)
+    T = test_icp(dst, src)
 
     rst = np.ones((dim+1,src.shape[0])) # make points homogeneous
     rst[:dim,:] = np.copy(src.T)
     rst = np.dot(T, rst)
     rst = rst[:dim,:].T
-    ax.scatter(rst[:,0],rst[:,1],rst[:,2],c="red")
+    ax.scatter(rst[:,0],rst[:,1],rst[:,2],c="red") # results
 
     # set top view
     ax.azim=-90
@@ -164,4 +164,4 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # TODO show the transformed matrix
+    # save ply
